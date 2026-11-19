@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>Spaza replenishment: the owner's daily session (prototype)</title>
+<style>
+  :root{
+    --ink:#1d1b18; --muted:#5f5a52; --paper:#f6f1e7; --card:#fffdf8;
+    --line:#d8cfbf; --accent:#b4531f; --accent2:#1f6f6a; --lcd:#c9d3b0; --lcdink:#1f2a12;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  header{padding:18px 16px 6px;max-width:1040px;margin:0 auto}
+  h1{font-size:1.35rem;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0;font-size:.95rem}
+  .flag{display:inline-block;margin-top:8px;background:#fff3d6;border:1px solid #e6c97a;
+        border-radius:6px;padding:4px 8px;font-size:.85rem}
+  main{max-width:1040px;margin:0 auto;padding:8px 16px 32px;
+       display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:860px){main{grid-template-columns:360px 1fr}}
+  main > *{min-width:0}
+  .scen{display:flex;flex-wrap:wrap;gap:6px;grid-column:1/-1}
+  .scen button{border:1px solid var(--line);background:var(--card);border-radius:999px;
+       padding:7px 12px;font-size:.9rem;cursor:pointer;color:var(--ink)}
+  .scen button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .hint{grid-column:1/-1;background:var(--card);border-left:4px solid var(--accent2);
+        padding:8px 12px;border-radius:4px;font-size:.95rem}
+  /* phone */
+  .phonewrap{display:flex;flex-direction:column;align-items:center}
+  .sid{font-size:.85rem;color:var(--muted);margin-bottom:6px;text-align:center;min-height:2.6em}
+  .sid b{color:var(--ink)}
+  .phone{width:300px;background:#2b2b2e;border-radius:34px;padding:22px 18px 18px;
+         box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .speaker{width:60px;height:6px;background:#111;border-radius:3px;margin:0 auto 14px}
+  .lcd{background:var(--lcd);color:var(--lcdink);border-radius:8px;height:228px;
+       padding:10px 12px;font:15px/1.35 "Courier New",ui-monospace,monospace;
+       display:flex;flex-direction:column;box-shadow:inset 0 0 0 2px #9fab86}
+  .lcd pre{margin:0;white-space:pre-wrap;flex:1;overflow:hidden;font:inherit}
+  .inp{border-top:1px dashed #7d8a63;padding-top:4px;min-height:1.4em;word-break:break-all}
+  .inp:after{content:"_";animation:b 1s steps(1) infinite}
+  @keyframes b{50%{opacity:0}}
+  .soft{display:flex;justify-content:space-between;margin:12px 4px 10px}
+  .soft button{background:#47474c;color:#fff;border:0;border-radius:14px;padding:8px 16px;
+        font-size:.95rem;cursor:pointer}
+  .soft .send{background:#2f7d3a}
+  .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .keys button{background:#3c3c41;color:#fff;border:0;border-radius:12px;height:44px;
+        font-size:1.2rem;cursor:pointer}
+  .keys button:active,.soft button:active{filter:brightness(1.3)}
+  .dial{margin-top:12px;width:300px;background:var(--accent);color:#fff;border:0;border-radius:10px;
+        padding:11px;font-size:1rem;cursor:pointer}
+  .dial:disabled{opacity:.45;cursor:default}
+  .sms{width:300px;margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;
+       padding:10px 12px;font-size:.92rem;display:none}
+  .sms small{color:var(--muted);display:block;margin-bottom:2px}
+  /* card */
+  .cardbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .cardhead h2{font-size:1.05rem;margin:0}
+  .flip button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer}
+  .flip button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .tablewrap{overflow-x:auto;margin-top:10px}
+  table{border-collapse:collapse;width:100%;min-width:520px;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:5px 4px;text-align:center}
+  th{font-weight:600;font-size:.78rem;vertical-align:bottom}
+  th svg{display:block;margin:0 auto 2px}
+  td.day{font-weight:600;text-align:left;padding-left:8px}
+  tr.today td{background:#fff3d6}
+  tr.sentnow td{background:#e3f1e6}
+  .note{font-size:.85rem;color:var(--muted);margin:8px 0 0}
+  .about{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+  .about h2{font-size:1.05rem;margin:0 0 6px}
+  .about ul{margin:6px 0;padding-left:20px}
+  .about li{margin:3px 0}
+  footer{max-width:1040px;margin:0 auto;padding:0 16px 28px;color:var(--muted);font-size:.82rem}
+  @media(max-width:520px){
+    .cardbox{padding:10px}
+    #card{min-width:0;font-size:.8rem}
+    #card th{font-size:.62rem;padding:3px 1px}
+    #card th svg{width:30px;height:23px}
+    #card td{padding:4px 1px}
+    #card td.day{padding-left:3px}
+  }
+  button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  #card td input{font-size:16px}
+</style>
+</head>
+<body>
+<noscript><div style="max-width:1040px;margin:8px auto 0;padding:12px 16px;background:#b4531f;color:#fff;border-radius:8px;font-size:1rem">
+This preview cannot run the demo. Open the web link in a browser such as Safari or Chrome to try it.</div></noscript>
+<header>
+  <h1>The spaza owner's daily session</h1>
+  <p class="sub">An interactive walkthrough of a replenishment decision-support design for spaza shops: count six products at closing, send the counts from any phone, get a ranked buy list.</p>
+  <span class="flag">Illustrative prototype: advice values are examples, not system output. Not tested with shop owners.</span>
+</header>
+
+<main>
+  <div class="scen" role="group" aria-label="Scenario">
+    <button data-s="order" aria-pressed="true">Order day</button>
+    <button data-s="missed" aria-pressed="false">Missed send</button>
+    <button data-s="slip" aria-pressed="false">Typing slip</button>
+    <button data-s="short" aria-pressed="false">Delivery short</button>
+    <button data-s="pin" aria-pressed="false">Wrong PIN</button>
+  </div>
+  <div class="hint" id="hint"></div>
+
+  <section class="phonewrap" aria-label="Phone">
+    <div class="sid" id="sid"></div>
+    <div class="phone">
+      <div class="speaker"></div>
+      <div class="lcd" aria-live="polite">
+        <pre id="scr"></pre>
+        <div class="inp" id="inp"></div>
+      </div>
+      <div class="soft">
+        <button id="clr" aria-label="Delete last character">Clear</button>
+        <button id="snd" class="send" aria-label="Send">Send</button>
+      </div>
+      <div class="keys" id="keys"></div>
+    </div>
+    <button class="dial" id="dial">Dial the short code</button>
+    <div class="sms" id="sms"><small>SMS received</small><span id="smstext"></span></div>
+  </section>
+
+  <section class="cardbox" aria-label="Count card">
+    <div class="cardhead">
+      <h2 id="cardtitle">Count card (front): count all six at closing</h2>
+      <div class="flip" role="group" aria-label="Card side">
+        <button data-side="front" aria-pressed="true">Front</button>
+        <button data-side="back" aria-pressed="false">Back</button>
+      </div>
+    </div>
+    <div class="tablewrap"><table id="card"></table></div>
+    <p class="note" id="cardnote"></p>
+  </section>
+
+  <section class="about">
+    <h2>What you are seeing</h2>
+    <ul>
+      <li><b>Owner's four actions:</b> count, dial, type the six numbers, buy from the top of the list. The owner works only with digits, numbered keys and the picture columns on the card.</li>
+      <li><b>Behind the screen (not run here):</b> each evening the engine checks the counts, learns each product's demand from the shop's own counts, and advises an order when stock falls below a reorder level set from that product's demand, lead time and a safety margin. The owner never applies a formula.</li>
+      <li><b>No phone, signal or power?</b> Counts wait on the card and are sent later. The back of the card holds the last "order when below" levels, so the daily shelf check still works.</li>
+      <li><b>Channel:</b> USSD works on any mobile phone without a data bundle. Every screen is under 160 characters.</li>
+      <li><b>What is real and what is not:</b> the screens follow the design specification. The buy list, the reasons and the SMS are fixed examples whatever counts you type. The only check run here is a stand-in for the stock-balance check: a count higher than yesterday's is queried once.</li>
+      <li><b>Added for this walkthrough:</b> the one-item retype prompt, the read-back without a query, and "1 Back" on the reasons screen, which the specification does not draw.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  MECN4034A Design Project, University of the Witwatersrand, 2026. Fatimah Zahra Khan. Demo PIN: 1234.
+  Built with AI assistance (Claude, Anthropic); screens and values follow the design report's specification.
+  No shop or participant data is used on this page.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  document.addEventListener('touchstart', function(){}, {passive:true}); // lets iOS Safari show key-press feedback
+  const PIN = "1234";
+  const NAMES = ["Bread 700 g","Maize 2.5 kg","Maize 5 kg","Oil 375 ml","Cold drink 2 L","Sugar 500 g"];
+  const MON = [19,4,6,9,14,6], TUE = [22,3,5,8,11,5], WED = [17,3,5,7,9,4];
+  const THU = [15,2,5,6,8,3]; // illustrative; the report's Table 27 gives Mon-Wed only
+
+  const S = {}; // state
+  const $ = id => document.getElementById(id);
+
+  const SCEN = {
+    order:{hint:"The owner has counted tonight's (Wed) row onto the card. Tap <b>Dial</b>, enter PIN <b>1234</b>, then type the row's six numbers with * between, <b>17*3*5*7*9*4</b>, and Send.", missed:false},
+    missed:{hint:"Wednesday's row was written on the card but never sent (no signal). Dial, choose <b>2</b> to send that row first (<b>17*3*5*7*9*4</b>), then tonight's Thursday row (<b>15*2*5*6*8*3</b>).", missed:true},
+    slip:{hint:"At the counts screen type <b>17*3*5*7*9*40</b> (40 typed instead of 4). The read-back queries it because it is above yesterday's 5.", missed:false},
+    short:{hint:"At the counts screen type <b>0</b> to report a short delivery, then e.g. <b>1*10</b> (10 loaves short).", missed:false},
+    pin:{hint:"Dial and enter any PIN other than 1234 three times. The PIN locks; the helpdesk resets it after an identity check. The PIN is never printed on the card.", missed:false}
+  };
+
+  // ---- product icons (generic, drawn here) ----
+  const ICON = [
+    // 1 Bread 700 g: loaf in a clear bag, blue band, red bag clip
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="1.5" y="4" width="29" height="20" rx="5" fill="#f3f1ec" stroke="#c8c8c8"/><path d="M4 22V12q0-6 6-6h14q6 0 6 6v10z" fill="#c8955a"/><path d="M11 8v4M17 8v4M23 8v4" stroke="#9a6a35" stroke-width="1.2"/><rect x="4" y="16" width="26" height="5" fill="#2b4c9b"/><path d="M30.5 13l3.5-2.5v5z" fill="#d0333b"/></svg>',
+    // 2 Maize 2.5 kg: small white bag, corn cob, green band
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="9.5" y="5" width="15" height="20" rx="1.5" fill="#fff" stroke="#c8c8c8"/><path d="M13 15.5q1.5-5 4-0.5q2.5-4.5 4 0.5q-2-1-4 1.2q-2-2.2-4-1.2z" fill="#4f8f37"/><ellipse cx="17" cy="11.5" rx="2" ry="3.4" fill="#f0c02e" stroke="#c99a12" stroke-width=".6"/><rect x="9.5" y="18.5" width="15" height="3" fill="#5d9b43"/></svg>',
+    // 3 Maize 5 kg: large white bag, corn cob, green band
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="4.5" y="1" width="25" height="24" rx="2" fill="#fff" stroke="#c8c8c8"/><path d="M11 14q2.5-7 6-0.8q3.5-6.2 6 0.8q-3-1.5-6 1.8q-3-3.3-6-1.8z" fill="#4f8f37"/><ellipse cx="17" cy="8.8" rx="2.9" ry="4.8" fill="#f0c02e" stroke="#c99a12" stroke-width=".7"/><rect x="4.5" y="17.5" width="25" height="4" fill="#5d9b43"/></svg>',
+    // 4 Oil 375 ml: yellow bottle, red cap, blue label
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="15" y="2" width="4" height="3" fill="#d0333b"/><path d="M14 5h6v2l2.5 2.5V24h-11V9.5L14 7z" fill="#e9c235"/><rect x="11.5" y="13" width="11" height="5" fill="#2b4c9b"/></svg>',
+    // 5 Cold drink 2 L: orange bottle, blue cap, white stripes
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="14.5" y="0.8" width="5" height="2.6" fill="#2b4c9b"/><path d="M15 3.4h4v3l3 3V24q0 1.5-1.5 1.5h-7Q12 25.5 12 24V9.4l3-3z" fill="#e2733a"/><rect x="12" y="14" width="10" height="1.4" fill="#fff"/><rect x="12" y="17.2" width="10" height="1.4" fill="#fff"/></svg>',
+    // 6 Sugar 500 g: white pack, red top band, blue band
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="9.5" y="3" width="15" height="21" fill="#fff" stroke="#c8c8c8"/><rect x="9.5" y="3" width="15" height="4.5" fill="#d0333b"/><rect x="9.5" y="15" width="15" height="4" fill="#2b4c9b"/></svg>'
+  ];
+
+  // ---- screens (text exactly as specified; each < 160 chars) ----
+  const T = {
+    idle: () => "\n  Ready.\n\n  Tap 'Dial the\n  short code'.",
+    s0: () => "[0] Last sent 06/11\n1 Send today\n2 Send 07/11 first",
+    s1: () => "[1] PIN: ____",
+    s1b: () => "[1b] PIN locked (3 tries)\nCall helpdesk to reset\n(number on the card)",
+    s2: () => "[2] Counts 1-6 (card order)\nType with * between\ne.g. 17*3*5*7*9*4\n0 Delivery short",
+    s2a: () => "[2a] " + S.nvals + " numbers. Need 6.\n1 Retype",
+    s3: () => {
+      const c = S.counts, f = flagged();
+      let t = "[3] " + c.map((v,i)=>(i+1)+":"+v).join(" ");
+      if (f >= 0) t += "\n" + (f+1) + ": " + c[f] + "? yesterday " + S.base[f] + "\n1 OK 2 Retype " + (f+1);
+      else t += "\n1 OK 2 Retype";
+      return t;
+    },
+    s3r: () => (S.flag+1) + ": type count",
+    s4: () => "[4] BUY TODAY (top first)\n1: 30 loaves\n6: 20 pkts\n4: 12 btls\n0 Why?",
+    s5: () => "[5] 1: 17 left = 1 day\n6: 4 left = 2 days\nDelivery: 1 day\n1 Back",
+    s6: () => "[6] Bought?\n1 Yes 2 Some 3 Not yet",
+    s7: () => "[7] Delivery short\n(card order)\nType item*units short\ne.g. 1*10",
+    s8: () => "[8] Saved. Ref 4821\nSMS copy sent",
+    end: () => "\n  Session ended.\n\n  Tap 'Dial the\n  short code' to\n  run again."
+  };
+  const CAP = {
+    idle:"Phone ready",
+    s0:"<b>Screen [0]</b> · only after a missed send",
+    s1:"<b>Screen [1]</b> · every session",
+    s1b:"<b>Screen [1b]</b> · after three wrong PINs (in this demo, dialling again unlocks it)",
+    s2:"<b>Screen [2]</b> · counts typed in card order",
+    s2a:"<b>Screen [2a]</b> · not 6 values: nothing saved",
+    s3:"<b>Screen [3]</b> · read-back; a suspect count is queried once",
+    s3r:"<b>Retype one count</b> · added for this walkthrough",
+    s4:"<b>Screen [4]</b> · ranked buy list (example values)",
+    s5:"<b>Screen [5]</b> · reasons ('Why?'); 1 to go back",
+    s6:"<b>Screen [6]</b> · confirm purchase",
+    s7:"<b>Screen [7]</b> · only when a delivery was short",
+    s8:"<b>Screen [8]</b> · closes the session; Send to finish",
+    end:"Session ended"
+  };
+
+  function flagged(){
+    for (let i=0;i<6;i++) if (S.counts[i] > S.base[i] && !S.ok.has(i)) return i;
+    return -1;
+  }
+
+  function reset(scen){
+    Object.assign(S,{scen, screen:"idle", input:"", tries:0, rows:[], ri:0,
+      counts:[], base:TUE.slice(), ok:new Set(), flag:-1, nvals:0, sent:{}, path:""});
+    $("hint").innerHTML = SCEN[scen].hint;
+    $("sms").style.display = "none";
+    document.querySelectorAll(".scen button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.s===scen));
+    render(); renderCard();
+  }
+
+  function go(screen){ S.screen = screen; S.input = ""; render(); }
+
+  function render(){
+    $("scr").textContent = T[S.screen]();
+    $("inp").textContent = S.input;
+    $("sid").innerHTML = CAP[S.screen] + rowLabel();
+    $("dial").disabled = !(S.screen==="idle" || S.screen==="end");
+  }
+  function rowLabel(){
+    if (!["s2","s2a","s3","s3r"].includes(S.screen) || !S.rows.length) return "";
+    return "<br>Sending card row: <b>" + (S.rows[S.ri]==="late" ? "07/11 (Wed, unsent)" : "today") + "</b>";
+  }
+
+  function dial(){
+    S.tries = 0; S.ok = new Set(); $("sms").style.display = "none";
+    if (SCEN[S.scen].missed){ go("s0"); }
+    else { S.rows = ["today"]; S.ri = 0; S.base = TUE.slice(); go("s1"); }
+  }
+
+  function saveRow(){
+    const key = S.rows[S.ri];
+    S.sent[key] = S.counts.slice();
+    renderCard();
+  }
+
+  function send(){
+    const v = S.input;
+    switch (S.screen){
+      case "s0":
+        if (v==="1"){ S.rows=["today"]; S.ri=0; S.base=WED.slice(); go("s1"); }
+        else if (v==="2"){ S.rows=["late","today"]; S.ri=0; S.base=TUE.slice(); go("s1"); }
+        else go("s0");
+        break;
+      case "s1":
+        if (v===PIN) go("s2");
+        else { S.tries++; if (S.tries>=3) go("s1b"); else go("s1"); }
+        break;
+      case "s1b": go("end"); break;
+      case "s2":
+        if (v==="0"){ S.path="short"; go("s7"); break; }
+        { const parts = v.split("*").filter(p=>p!=="");
+          const bad = v.split("*").some(p=>p==="") && v!=="";
+          if (parts.length!==6 || bad || parts.some(p=>!/^\d+$/.test(p))){ S.nvals = parts.length; go("s2a"); }
+          else { S.counts = parts.map(Number); S.ok = new Set(); go("s3"); } }
+        break;
+      case "s2a": if (v==="1") go("s2"); else go("s2a"); break;
+      case "s3": {
+        const f = flagged();
+        if (v==="1"){
+          if (f>=0){ S.ok.add(f); if (flagged()>=0){ go("s3"); break; } }
+          saveRow();
+          if (S.ri < S.rows.length-1){ S.base = S.counts.slice(); S.ri++; S.counts=[]; S.ok=new Set(); go("s2"); }
+          else go("s4");
+        } else if (v==="2"){
+          if (f>=0){ S.flag=f; go("s3r"); } else go("s2");
+        } else go("s3");
+        break; }
+      case "s3r":
+        if (/^\d+$/.test(v)){ S.counts[S.flag]=Number(v); S.ok.add(S.flag); go("s3"); }
+        else go("s3r");
+        break;
+      case "s4": if (v==="0") go("s5"); else go("s6"); break;
+      case "s5": if (v==="1"||v==="") go("s4"); else go("s5"); break;
+      case "s6": if (["1","2","3"].includes(v)){ S.path="buy"; go("s8"); } else go("s6"); break;
+      case "s7":
+        if (/^[1-6]\*\d{1,3}$/.test(v)) go("s8"); else go("s7");
+        break;
+      case "s8":
+        if (S.path==="buy"){
+          $("smstext").textContent = "28 Oct BUY 1 Bread 30, 6 Sugar 20, 4 Oil 12. Ref 4821.";
+          $("sms").style.display = "block";
+        }
+        go("end"); break;
+      default: break;
+    }
+  }
+
+  function press(k){
+    if (S.screen==="idle"||S.screen==="end") return;
+    if (S.input.length < 40){ S.input += k; $("inp").textContent = S.input; }
+  }
+  function clr(){ S.input = S.input.slice(0,-1); $("inp").textContent = S.input; }
+
+  // ---- card ----
+  let side = "front";
+  function renderCard(){
+    const missed = SCEN[S.scen].missed;
+    const head = '<tr><th>Day</th>' + NAMES.map((n,i)=>'<th>'+ICON[i]+(i+1)+'<br>'+n+'</th>').join('') +
+                 (side==="front" ? '<th>Sent ✓</th>' : '') + '</tr>';
+    let rows = [];
+    if (side==="front"){
+      rows.push(row("Mon", MON, "✓"));
+      rows.push(row("Tue", TUE, "✓"));
+      if (missed){
+        const s = S.sent.late;
+        rows.push(row("Wed", WED, s ? "✓" : "(no signal: send later)", s ? "sentnow" : ""));
+        const t = S.sent.today;
+        rows.push(row("Thu", t || THU, t ? "✓" : "not sent", t ? "sentnow" : "today"));
+        ["Fri","Sat","Sun"].forEach(d=>rows.push(row(d,null,"")));
+      } else {
+        const t = S.sent.today;
+        rows.push(row("Wed", t || WED, t ? "✓" : "not sent", t ? "sentnow" : "today"));
+        ["Thu","Fri","Sat","Sun"].forEach(d=>rows.push(row(d,null,"")));
+      }
+      $("cardtitle").textContent = "Count card (front): count all six at closing";
+      $("cardnote").textContent = "One card a week, kept at the shelf. At closing the owner counts and writes tonight's row, then types it into the phone. Pictures head the columns, so no reading is needed. A row without ✓ is sent in the next session under its own date.";
+    } else {
+      ["Mon"].forEach(d=>rows.push(row(d,null,null)));
+      rows.push('<tr><td class="day">Tue</td><td>15</td><td></td><td></td><td></td><td></td><td>8</td></tr>');
+      ["Wed","Thu","Fri","Sat","Sun"].forEach(d=>rows.push(row(d,null,null)));
+      $("cardtitle").textContent = "Shelf card (back): order when below";
+      $("cardnote").textContent = "After each session the owner writes each product's 'order when below' level (example values shown). Without phone or signal, the owner compares the shelf with the last levels.";
+    }
+    $("card").innerHTML = head + rows.join("");
+  }
+  function row(day, vals, sent, cls){
+    const cells = vals ? vals.map(v=>'<td>'+v+'</td>').join('') : '<td></td>'.repeat(6);
+    return '<tr class="'+(cls||'')+'"><td class="day">'+day+'</td>'+cells+(sent!==null && side==="front" ? '<td>'+sent+'</td>' : '')+'</tr>';
+  }
+
+  // ---- wiring ----
+  const K = ["1","2","3","4","5","6","7","8","9","*","0","#"];
+  $("keys").innerHTML = K.map(k=>'<button data-k="'+k+'" aria-label="Key '+k+'">'+k+'</button>').join("");
+  $("keys").addEventListener("click", e=>{ const k=e.target.closest("button"); if(k) press(k.dataset.k); });
+  $("snd").addEventListener("click", send);
+  $("clr").addEventListener("click", clr);
+  $("dial").addEventListener("click", dial);
+  document.querySelectorAll(".scen button").forEach(b=>b.addEventListener("click",()=>reset(b.dataset.s)));
+  document.querySelectorAll(".flip button").forEach(b=>b.addEventListener("click",()=>{
+    side=b.dataset.side;
+    document.querySelectorAll(".flip button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+    renderCard();
+  }));
+  document.addEventListener("keydown", e=>{
+    if (e.target.tagName==="BUTTON" && (e.key==="Enter"||e.key===" ")) return;
+    if (/^[0-9*#]$/.test(e.key)){ press(e.key); e.preventDefault(); }
+    else if (e.key==="Enter"){ send(); e.preventDefault(); }
+    else if (e.key==="Backspace"){ clr(); e.preventDefault(); }
+  });
+
+  reset("order");
+})();
+</script>
+</body>
+</html>

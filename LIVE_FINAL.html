@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>Spaza replenishment: try the owner's evening</title>
+<style>
+
+  :root{
+    --ink:#1d1b18; --muted:#5f5a52; --paper:#f6f1e7; --card:#fffdf8;
+    --line:#d8cfbf; --accent:#b4531f; --accent2:#1f6f6a; --lcd:#c9d3b0; --lcdink:#1f2a12;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  header{padding:18px 16px 6px;max-width:1040px;margin:0 auto}
+  h1{font-size:1.35rem;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0;font-size:.95rem}
+  .flag{display:inline-block;margin-top:8px;background:#fff3d6;border:1px solid #e6c97a;
+        border-radius:6px;padding:4px 8px;font-size:.85rem}
+  main{max-width:1040px;margin:0 auto;padding:8px 16px 32px;
+       display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:860px){main{grid-template-columns:360px 1fr}}
+  main > *{min-width:0}
+  .scen{display:flex;flex-wrap:wrap;gap:6px;grid-column:1/-1}
+  .scen button{border:1px solid var(--line);background:var(--card);border-radius:999px;
+       padding:7px 12px;font-size:.9rem;cursor:pointer;color:var(--ink)}
+  .scen button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .hint{grid-column:1/-1;background:var(--card);border-left:4px solid var(--accent2);
+        padding:8px 12px;border-radius:4px;font-size:.95rem}
+  /* phone */
+  .phonewrap{display:flex;flex-direction:column;align-items:center}
+  .sid{font-size:.85rem;color:var(--muted);margin-bottom:6px;text-align:center;min-height:2.6em}
+  .sid b{color:var(--ink)}
+  .phone{width:300px;background:#2b2b2e;border-radius:34px;padding:22px 18px 18px;
+         box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .speaker{width:60px;height:6px;background:#111;border-radius:3px;margin:0 auto 14px}
+  .lcd{background:var(--lcd);color:var(--lcdink);border-radius:8px;height:228px;
+       padding:10px 12px;font:15px/1.35 "Courier New",ui-monospace,monospace;
+       display:flex;flex-direction:column;box-shadow:inset 0 0 0 2px #9fab86}
+  .lcd pre{margin:0;white-space:pre-wrap;flex:1;overflow:hidden;font:inherit}
+  .inp{border-top:1px dashed #7d8a63;padding-top:4px;min-height:1.4em;word-break:break-all}
+  .inp:after{content:"_";animation:b 1s steps(1) infinite}
+  @keyframes b{50%{opacity:0}}
+  .soft{display:flex;justify-content:space-between;margin:12px 4px 10px}
+  .soft button{background:#47474c;color:#fff;border:0;border-radius:14px;padding:8px 16px;
+        font-size:.95rem;cursor:pointer}
+  .soft .send{background:#2f7d3a}
+  .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .keys button{background:#3c3c41;color:#fff;border:0;border-radius:12px;height:44px;
+        font-size:1.2rem;cursor:pointer}
+  .keys button:active,.soft button:active{filter:brightness(1.3)}
+  .dial{margin-top:12px;width:300px;background:var(--accent);color:#fff;border:0;border-radius:10px;
+        padding:11px;font-size:1rem;cursor:pointer}
+  .dial:disabled{opacity:.45;cursor:default}
+  .sms{width:300px;margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;
+       padding:10px 12px;font-size:.92rem;display:none}
+  .sms small{color:var(--muted);display:block;margin-bottom:2px}
+  /* card */
+  .cardbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .cardhead h2{font-size:1.05rem;margin:0}
+  .flip button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer}
+  .flip button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .tablewrap{overflow-x:auto;margin-top:10px}
+  table{border-collapse:collapse;width:100%;min-width:520px;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:5px 4px;text-align:center}
+  th{font-weight:600;font-size:.78rem;vertical-align:bottom}
+  th svg{display:block;margin:0 auto 2px}
+  td.day{font-weight:600;text-align:left;padding-left:8px}
+  tr.today td{background:#fff3d6}
+  tr.sentnow td{background:#e3f1e6}
+  .note{font-size:.85rem;color:var(--muted);margin:8px 0 0}
+  .about{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+  .about h2{font-size:1.05rem;margin:0 0 6px}
+  .about ul{margin:6px 0;padding-left:20px}
+  .about li{margin:3px 0}
+  footer{max-width:1040px;margin:0 auto;padding:0 16px 28px;color:var(--muted);font-size:.82rem}
+
+  .steps{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0;padding:0;list-style:none}
+  .steps li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.88rem;color:var(--muted)}
+  .steps li b{display:block;font-size:1rem;color:var(--ink)}
+  .steps li.on{background:var(--ink);border-color:var(--ink);color:#e9e4da}
+  .steps li.on b{color:#fff}
+  .steps li.done{border-color:var(--accent2)}
+  .steps li.done b:after{content:" ✓";color:var(--accent2)}
+  @media(max-width:520px){.steps li{font-size:.78rem;padding:6px}.steps li b{font-size:.9rem}}
+  .ctrl{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:.92rem}
+  .ctrl button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px;cursor:pointer}
+  .ctrl label{display:flex;gap:6px;align-items:center}
+  .day{font-weight:600}
+  .explain{width:300px;margin-top:10px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent2);
+           border-radius:6px;padding:9px 12px;font-size:.95rem}
+  .exbtn{margin-top:8px;width:300px;background:var(--accent2);color:#fff;border:0;border-radius:10px;padding:10px;font-size:.95rem;cursor:pointer}
+  .exbtn.alt{background:#fff;color:var(--accent2);border:1px solid var(--accent2)}
+  .exbtn:disabled{opacity:.45;cursor:default}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px;align-items:center;font-size:.9rem}
+  .chips button{border:1px solid var(--accent2);background:#fff;color:var(--accent2);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:.88rem}
+  .chips button[aria-pressed="true"]{background:var(--accent2);color:#fff}
+  .chipnote{font-size:.88rem;color:var(--muted);min-height:1.3em;margin:4px 0 0}
+  td input{box-shadow:0 0 0 2px #e6c97a;width:3.2em;font:inherit;text-align:center;border:1px solid #c9b98f;border-radius:4px;padding:3px 0;background:#fff}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;color:var(--muted);margin-top:8px}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:4px;border:1px solid var(--line)}
+  details.engine{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+  details.engine summary{cursor:pointer;font-weight:600}
+  .eq{font:14px/1.6 ui-monospace,"Courier New",monospace;background:#f3eee3;padding:8px 10px;border-radius:6px;margin:8px 0;overflow-x:auto}
+  #eng td,#eng th{font-size:.82rem}
+  #eng td.due{background:#fde2d4;font-weight:600}
+  .check{font-size:.85rem;margin:6px 0;color:var(--muted)}
+  @media(max-width:520px){
+    .cardbox{padding:10px}
+    #card{min-width:0;font-size:.8rem}
+    #card th{font-size:.62rem;padding:3px 1px}
+    #card th svg{width:30px;height:23px}
+    #card td{padding:4px 1px}
+    #card td.day{padding-left:3px}
+    #card td input{width:2.3em;padding:2px 0}
+  }
+  button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  #card td input{font-size:16px}
+  input[type=number]{-moz-appearance:textfield;appearance:textfield}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+</style>
+</head>
+<body>
+<noscript><div style="max-width:1040px;margin:8px auto 0;padding:12px 16px;background:#b4531f;color:#fff;border-radius:8px;font-size:1rem">
+This preview cannot run the demo. Open the web link in a browser such as Safari or Chrome to try it.</div></noscript>
+<header>
+  <h1>Try a spaza owner's evening</h1>
+  <p class="sub">At closing time the owner counts six products, writes the numbers on a paper card and sends them from any phone. The system replies with what to buy tomorrow. You play the owner for one week.</p>
+  <span class="flag">A demonstration of a student design. It has not been tested with shop owners. All numbers are examples.</span>
+</header>
+
+<main>
+  <ol class="steps" id="steps">
+    <li><b>1 Count</b>Write tonight's stock on the card</li>
+    <li><b>2 Dial</b>Call the short code, enter the PIN</li>
+    <li><b>3 Type</b>Type the card's six numbers</li>
+    <li><b>4 Buy</b>Read the shopping list</li>
+  </ol>
+
+  <div class="ctrl">
+    <span>Evening: <span class="day" id="dayname"></span></span>
+    <label><input type="checkbox" id="peak"> Month-end or grant day coming (people buy more)</label>
+    <button id="reset">Start the week again</button>
+  </div>
+
+  <section class="phonewrap" aria-label="Phone">
+    <div class="phone">
+      <div class="speaker"></div>
+      <div class="lcd" aria-live="polite">
+        <pre id="scr"></pre>
+        <div class="inp" id="inp"></div>
+      </div>
+      <div class="soft">
+        <button id="clr" aria-label="Delete last character">Clear</button>
+        <button id="snd" class="send" aria-label="Send">Send</button>
+      </div>
+      <div class="keys" id="keys"></div>
+    </div>
+    <div class="explain" id="explain" aria-live="polite"></div>
+    <button class="dial" id="dial">Dial the short code</button>
+    <button class="exbtn" id="ex"></button>
+    <button class="exbtn alt" id="slip" style="display:none">Make a typing mistake</button>
+    <div class="sms" id="sms"><small>SMS the owner keeps</small><span id="smstext"></span></div>
+  </section>
+
+  <section class="cardbox" aria-label="Count card">
+    <div class="cardhead">
+      <h2 id="cardtitle"></h2>
+      <div class="flip" role="group" aria-label="Card side">
+        <button data-side="front" aria-pressed="true">Front</button>
+        <button data-side="back" aria-pressed="false">Back</button>
+      </div>
+    </div>
+    <div id="chipbox">
+      <div class="chips" role="group" aria-label="Example evenings">
+        <span>Example evenings:</span>
+        <button data-ex="normal">Normal day</button>
+        <button data-ex="busy">Busy day</button>
+        <button data-ex="quiet">Quiet day</button>
+      </div>
+      <p class="chipnote" id="chipnote"></p>
+    </div>
+    <div class="tablewrap"><table id="card"></table></div>
+    <div class="legend" id="legend"></div>
+    <p class="note" id="cardnote"></p>
+  </section>
+
+  <details class="engine" id="engbox">
+    <summary>For engineers: the maths behind the list (the owner never sees this)</summary>
+    <div class="eq">d ← 0.2·x + 0.8·d &nbsp;&nbsp; v ← 0.2·(x − d_old)² + 0.8·v<br>
+      d_eff = d·(1 + 0.25·A)<br>
+      s = d_eff·(1 + L) + Z·√((1 + L)·v + d_eff²·σL²), Z = 0.84 (bread: s ≤ 4·d_eff)<br>
+      order Q = max(1, round(d_eff·R)) when stock ≤ s; list ranked by days of cover − L, lowest first</div>
+    <p class="check" id="lastx"></p>
+    <div class="tablewrap"><table id="eng"></table></div>
+    <p class="check">x = units that left stock since the last count (last count + delivery − tonight's count), raised by 20% on a day that sold out. First evening: no learning and no checks, because there is no earlier count. Check: on the first evening, with the month-end switch off, an oil count of 3 gives s = 6.347 and an order of 17, as in the design report's worked example.</p>
+  </details>
+
+  <section class="about">
+    <h2>Good to know</h2>
+    <ul>
+      <li><b>Why paper and a basic phone?</b> The card works with no phone, signal or power. The phone part uses USSD (like checking airtime), which works on any phone and needs no data bundle.</li>
+      <li><b>Where does the list come from?</b> The system learns how fast each product sells in this shop from the owner's own counts, and suggests buying before a product runs out. Bread is only reordered when less than about 4 days' worth is left, because it goes stale.</li>
+      <li><b>What if a number is wrong?</b> If a count is higher than the shop could have, or a much bigger drop than usual, the phone asks once to check it.</li>
+      <li><b>Back of the card:</b> the owner writes each product's "order when below" number, so the card still helps on a night with no signal.</li>
+      <li><b>Demo limits:</b> the starting values are typical values (medians) from a survey of 20 Soweto shops; every delivery is assumed to take 1 day; "2 Some" at "Bought?" is recorded as nothing bought; a confirmed count above the stock the shop had is treated as nothing sold; missed evenings are not shown here; the design does not say which screen shows the "order when below" numbers, so the back of the card fills itself in. The "1 Back" option on the reasons screen is added here; the design's screen does not show one.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  MECN4034A Design Project, University of the Witwatersrand, 2026. Fatimah Zahra Khan. Demo PIN: 1234.
+  Built with AI assistance (Claude, Anthropic); the calculation follows the design report's specification. No individual shop's data is shown: the starting values are medians across 20 shops, and every count is an example.
+  <a href="index.html">See every screen in a fixed walkthrough</a>.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  document.addEventListener('touchstart', function(){}, {passive:true}); // lets iOS Safari show key-press feedback
+  const PIN="1234", Z=0.84, ALPHA=0.2, UPLIFT=0.25, CENSOR=0.2, KSD=3, BREADCAP=4;
+  const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const NAMES=["Bread 700 g","Maize 2.5 kg","Maize 5 kg","Oil 375 ml","Cold drink 2 L","Sugar 500 g"];
+  const SHORT=["Bread","Maize2.5","Maize5","Oil","Drink2L","Sugar"];
+  const UNIT=["loaves","bags","bags","btls","btls","pkts"];
+  // Demo shop setup: survey-median first-use defaults, collect tier (report Table C.2);
+  // oil uses the worked-example values (Table 26). L and sigmaL set at setup (illustrative).
+  const DEF=[
+    {d:20.00, sd:19.51, R:1.5,  bread:true},
+    {d:1.07,  sd:2.43,  R:7.5},
+    {d:2.00,  sd:2.43,  R:8.5},
+    {d:1.857, v:3.190,  R:9.0},
+    {d:3.00,  sd:4.21,  R:6.5},
+    {d:3.07,  sd:4.56,  R:10.0}
+  ];
+  const SETUP_L=1, SETUP_SL=1;
+  // Example week (illustrative): first-evening counts, then units sold each evening.
+  // Example counts = stock before tonight's sales minus these sales.
+  const EX_FIRST=[17,3,5,3,9,4];
+  const EX_SALES=[null,[18,1,2,2,3,3],[22,1,2,1,2,4],[20,2,1,2,4,2],[19,0,3,2,3,3],[24,1,2,3,3,4],[30,2,3,2,5,5]];
+
+  const EXF={busy:1.5, quiet:0.5};
+  const EXNOTE={
+    normal:"An ordinary evening: some of each product sold today.",
+    busy:"A busy day: about half as much again was sold, so less is left on the shelf.",
+    quiet:"A quiet day: about half the usual was sold, so more is left."
+  };
+const ICON = [
+    // 1 Bread 700 g: loaf in a clear bag, blue band, red bag clip
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="1.5" y="4" width="29" height="20" rx="5" fill="#f3f1ec" stroke="#c8c8c8"/><path d="M4 22V12q0-6 6-6h14q6 0 6 6v10z" fill="#c8955a"/><path d="M11 8v4M17 8v4M23 8v4" stroke="#9a6a35" stroke-width="1.2"/><rect x="4" y="16" width="26" height="5" fill="#2b4c9b"/><path d="M30.5 13l3.5-2.5v5z" fill="#d0333b"/></svg>',
+    // 2 Maize 2.5 kg: small white bag, corn cob, green band
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="9.5" y="5" width="15" height="20" rx="1.5" fill="#fff" stroke="#c8c8c8"/><path d="M13 15.5q1.5-5 4-0.5q2.5-4.5 4 0.5q-2-1-4 1.2q-2-2.2-4-1.2z" fill="#4f8f37"/><ellipse cx="17" cy="11.5" rx="2" ry="3.4" fill="#f0c02e" stroke="#c99a12" stroke-width=".6"/><rect x="9.5" y="18.5" width="15" height="3" fill="#5d9b43"/></svg>',
+    // 3 Maize 5 kg: large white bag, corn cob, green band
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="4.5" y="1" width="25" height="24" rx="2" fill="#fff" stroke="#c8c8c8"/><path d="M11 14q2.5-7 6-0.8q3.5-6.2 6 0.8q-3-1.5-6 1.8q-3-3.3-6-1.8z" fill="#4f8f37"/><ellipse cx="17" cy="8.8" rx="2.9" ry="4.8" fill="#f0c02e" stroke="#c99a12" stroke-width=".7"/><rect x="4.5" y="17.5" width="25" height="4" fill="#5d9b43"/></svg>',
+    // 4 Oil 375 ml: yellow bottle, red cap, blue label
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="15" y="2" width="4" height="3" fill="#d0333b"/><path d="M14 5h6v2l2.5 2.5V24h-11V9.5L14 7z" fill="#e9c235"/><rect x="11.5" y="13" width="11" height="5" fill="#2b4c9b"/></svg>',
+    // 5 Cold drink 2 L: orange bottle, blue cap, white stripes
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="14.5" y="0.8" width="5" height="2.6" fill="#2b4c9b"/><path d="M15 3.4h4v3l3 3V24q0 1.5-1.5 1.5h-7Q12 25.5 12 24V9.4l3-3z" fill="#e2733a"/><rect x="12" y="14" width="10" height="1.4" fill="#fff"/><rect x="12" y="17.2" width="10" height="1.4" fill="#fff"/></svg>',
+    // 6 Sugar 500 g: white pack, red top band, blue band
+    '<svg width="44" height="34" viewBox="0 0 34 26" aria-hidden="true"><rect x="9.5" y="3" width="15" height="21" fill="#fff" stroke="#c8c8c8"/><rect x="9.5" y="3" width="15" height="4.5" fill="#d0333b"/><rect x="9.5" y="15" width="15" height="4" fill="#2b4c9b"/></svg>'
+  ];
+
+  const roundHalfUp = x => Math.floor(x+0.5);
+  const $ = id => document.getElementById(id);
+  let P, E, S, side="front";
+
+  // ---------- engine ----------
+  function newShop(){
+    P = DEF.map(o=>({d:o.d, v:(o.v!==undefined?o.v:o.sd*o.sd), L:SETUP_L, sL:SETUP_SL,
+                     R:roundHalfUp(o.R), bread:!!o.bread, last:null, deliv:0, notYet:false}));
+    E = {day:0, sent:[], levels:[], advice:[], lastX:null, ref:4821};
+  }
+  const A = () => $("peak").checked ? 1 : 0;
+  const deff = p => p.d*(1+UPLIFT*A());
+  function level(p){
+    const de=deff(p);
+    let s = de*(1+p.L) + Z*Math.sqrt((1+p.L)*p.v + de*de*p.sL*p.sL);
+    if (p.bread) s = Math.min(s, BREADCAP*de);
+    return s;
+  }
+  const qty = p => Math.max(1, roundHalfUp(deff(p)*p.R));
+  function query(counts){       // V-a and V-b; returns index of first suspect not yet confirmed
+    for (let i=0;i<6;i++){
+      const p=P[i]; if (p.last===null || S.ok.has(i)) continue;
+      const opened=p.last+p.deliv, x=opened-counts[i];
+      if (counts[i] > opened) return i;                       // V-a stock balance
+      if (Math.abs(x-p.d) > KSD*Math.sqrt(p.v)) return i;      // V-b
+    }
+    return -1;
+  }
+  function commit(counts){
+    const xs=[];
+    P.forEach((p,i)=>{
+      if (p.last!==null){
+        const opened=p.last+p.deliv;
+        let x=Math.max(0, opened-counts[i]);
+        if (opened>0 && counts[i]===0) x*=1+CENSOR;
+        const dOld=p.d;
+        p.v = ALPHA*(x-dOld)*(x-dOld) + (1-ALPHA)*p.v;
+        p.d = ALPHA*x + (1-ALPHA)*dOld;
+        xs.push(+x.toFixed(2));
+      } else xs.push(null);
+      p.last=counts[i]; p.deliv=0;
+    });
+    E.lastX=xs;
+    // advice
+    const due=[];
+    P.forEach((p,i)=>{
+      const s=level(p);
+      if (counts[i] <= s){
+        due.push({i, q:qty(p), cover:counts[i]/deff(p), key:counts[i]/deff(p)-p.L, top:p.notYet});
+      }
+    });
+    due.sort((a,b)=> (b.top-a.top) || (a.key-b.key));
+    E.advice=due;
+    E.sent[E.day]=counts.slice();
+    E.levels[E.day]=P.map(p=>Math.floor(level(p))+1);
+    E.ref = 4821 + E.day;
+  }
+  function confirm(ans){
+    E.advice.forEach(a=>{
+      const p=P[a.i];
+      if (ans==="1"){ p.deliv=a.q; p.notYet=false; }
+      else if (ans==="2"){ p.deliv=0; p.notYet=false; }
+      else { p.deliv=0; p.notYet=true; }
+    });
+    // items not on the list lose any not-yet flag once they are no longer due
+    P.forEach((p,i)=>{ if (!E.advice.some(a=>a.i===i)) p.notYet=false; });
+  }
+
+
+  // ---------- examples ----------
+  function exampleRow(kind){
+    let c;
+    if (E.day===0){
+      const f = kind==="busy" ? 0.6 : kind==="quiet" ? 1.4 : 1;
+      c = EX_FIRST.map(v=>roundHalfUp(v*f));
+    } else {
+      const f = EXF[kind] || 1;
+      c = P.map((p,i)=>Math.max(0, p.last+p.deliv-roundHalfUp(EX_SALES[E.day][i]*f)));
+    }
+    return c;
+  }
+  function newEvening(){ S.tonight=exampleRow("normal"); S.kind="normal"; }
+
+  // ---------- screens (each under 160 characters) ----------
+  const fmt = x => (Math.round(x*10)/10).toFixed(1);
+  const T={
+    idle:()=> "\n  Ready.\n\n  Tap 'Dial the\n  short code'.",
+    s1:()=> "[1] PIN: ____",
+    s1b:()=> "[1b] PIN locked (3 tries)\nCall helpdesk to reset\n(number on the card)",
+    s2:()=> "[2] Counts 1-6 (card order)\nType with * between\ne.g. 17*3*5*7*9*4\n0 Delivery short",
+    s2a:()=> "[2a] "+S.nvals+" numbers. Need 6.\n1 Retype",
+    s3:()=>{
+      const c=S.counts, f=query(c);
+      let t="[3] "+c.map((v,i)=>(i+1)+":"+v).join(" ");
+      if (f>=0) t+="\n"+(f+1)+": "+c[f]+"? yesterday "+P[f].last+"\n1 OK 2 Retype "+(f+1);
+      else t+="\n1 OK 2 Retype";
+      return t;
+    },
+    s3r:()=> (S.flag+1)+": type count",
+    s4:()=> "[4] BUY TODAY (top first)\n"+E.advice.map(a=>(a.i+1)+": "+a.q+" "+UNIT[a.i]).join("\n")+"\n0 Why?",
+    s4n:()=> "[4] No order today\nCount again tomorrow",
+    s5:()=> "[5] "+E.advice.map(a=>(a.i+1)+": "+S.counts[a.i]+" left="+fmt(a.cover)+" days").join("\n")+"\nDelivery: "+SETUP_L+" day\n1 Back",
+    s6:()=> "[6] Bought?\n1 Yes 2 Some 3 Not yet",
+    s7:()=> "[7] Delivery short\n(card order)\nType item*units short\ne.g. 1*10",
+    s8:()=> "[8] Saved. Ref "+E.ref+"\nSMS copy sent",
+    end:()=> E.day>=7 ? "\n  Week complete.\n\n  Tap 'Start the\n  week again'." : "\n  Done for tonight.\n\n  Dial again for\n  the next evening."
+  };
+  // plain-language explanation of each screen
+  function explain(){
+    const f = S.screen==="s3" ? query(S.counts) : -1;
+    switch(S.screen){
+      case "idle": return E.day===0
+        ? "<b>Step 1 is done:</b> the owner has counted tonight's stock and written it in the yellow row of the card. Now dial the short code. Tap the green button below for help at each step."
+        : "<b>Step 1 is done:</b> tonight's numbers are in the yellow row. Change them or pick another example evening on the card, then dial.";
+      case "s1": return "<b>Step 2:</b> type the shop's PIN and press Send. For this demo the PIN is <b>1234</b>.";
+      case "s1b": return "Three wrong PINs lock the shop's account, so a stranger cannot use it. The helpdesk resets it after checking who is calling. (In this demo, dialling again unlocks it.)";
+      case "s2": return "<b>Step 3:</b> type the six numbers from the yellow row, in the same order as the card, with * between them. Then press Send. You can still change the card's numbers.";
+      case "s2a": return "The system needs six numbers, one for each product. Nothing was saved. Press 1, then type them again.";
+      case "s3": return f>=0
+        ? "The phone repeats the numbers. Product "+(f+1)+" looks wrong: it is more than the shop had, or a much bigger drop than usual. A typing mistake? Press <b>2</b> to fix it, or <b>1</b> if it really is right."
+        : "The phone repeats the numbers so the owner can check them against the card. Press <b>1</b> if they are right, <b>2</b> to type them again.";
+      case "s3r": return "Type the correct number for product "+(S.flag+1)+" from the card, then press Send.";
+      case "s4": return "<b>Step 4:</b> tomorrow's shopping list. Each line is a card column and how many to buy. Most urgent first, so if money is short, buy from the top. Press <b>0</b> to see why, or Send to carry on.";
+      case "s4n": return "<b>Step 4:</b> there is enough stock tonight, so there is nothing to buy. Press Send.";
+      case "s5": return "Why these products: how many days each will last at the usual sales, and how long a delivery takes. Press <b>1</b> to go back to the list.";
+      case "s6": return "Did the owner buy the list? <b>1</b> Yes, <b>2</b> Some, <b>3</b> Not yet. With 1, the system expects the new stock in tomorrow's count.";
+      case "s7": return "Only if a delivery came short: type the product number, *, and how many were missing (e.g. 1*10 = 10 loaves short).";
+      case "s8": return "Saved. The owner also gets the list as an SMS to keep. Press Send to finish.";
+      case "end": return E.day>=7
+        ? "That was a whole week. Open 'For engineers' below to see how the system learned this shop's sales, or start again."
+        : "Done for tonight: about two and a half minutes at a typical shop (a design estimate, not measured). The next evening's numbers are already on the card. Dial again.";
+    }
+    return "";
+  }
+  function stepOf(sc){
+    if (sc==="idle") return 2;
+    if (sc==="s1"||sc==="s1b") return 2;
+    if (["s2","s2a","s3","s3r","s7"].includes(sc)) return 3;
+    if (["s4","s4n","s5","s6","s8"].includes(sc)) return 4;
+    return 0;
+  }
+
+  function go(sc){ S.screen=sc; S.input=""; render(); }
+  function render(){
+    const txt=T[S.screen]();
+    if (txt.length>=160) console.warn("Screen over 160 chars:", S.screen, txt.length);
+    $("scr").textContent=txt; $("inp").textContent=S.input;
+    $("explain").innerHTML=explain();
+    const st = S.screen==="end" ? 5 : stepOf(S.screen);
+    document.querySelectorAll("#steps li").forEach((li,k)=>{
+      li.className = (k+1===st) ? "on" : (k+1<st ? "done" : "");
+    });
+    $("dial").disabled = !((S.screen==="idle"||S.screen==="end") && E.day<7);
+    $("dayname").textContent = E.day<7 ? DAYS[E.day]+" (evening "+(E.day+1)+" of 7)" : "week complete";
+    const ex=exampleFor(S.screen); $("ex").textContent=ex.label;
+    $("ex").disabled = (S.screen==="idle"||S.screen==="end") && E.day>=7;
+    $("slip").style.display = (S.screen==="s2" && E.day>0) ? "block" : "none";
+    renderEngine(); renderCard();
+  }
+
+  // ---------- example button on the phone ----------
+  function exampleFor(sc){
+    switch(sc){
+      case "idle": case "end": return {label:"Help me: dial", act:"dial"};
+      case "s1": return {label:"Help me: type the PIN", val:PIN};
+      case "s2": return {label:"Help me: type the card's yellow row", val:S.tonight.join("*")};
+      case "s2a": return {label:"Help me: press 1 to retype", val:"1"};
+      case "s3": { const f=query(S.counts);
+        if (f>=0 && S.counts[f]!==S.tonight[f]) return {label:"Help me: press 2 to fix the mistake", val:"2"};
+        return {label:"Help me: press 1, the numbers are right", val:"1"}; }
+      case "s3r": return {label:"Help me: type the number from the card", val:String(S.tonight[S.flag])};
+      case "s4": return S.sawWhy ? {label:"Help me: carry on", act:"send"} : {label:"Help me: press 0 to see why", val:"0"};
+      case "s5": return {label:"Help me: press 1 to go back", val:"1"};
+      case "s4n": case "s8": return {label:"Help me: press Send", act:"send"};
+      case "s6": return {label:"Help me: press 1, the owner bought it", val:"1"};
+      case "s7": return {label:"Help me: 10 loaves were short", val:"1*10"};
+      default: return {label:"Help me", act:null};
+    }
+  }
+  function doExample(){
+    const ex=exampleFor(S.screen);
+    if (ex.act==="dial"){ if (!$("dial").disabled) dial(); return; }
+    if (ex.act==="send"){ sendKey(); return; }
+    if (ex.val!==undefined){ S.input=ex.val; $("inp").textContent=S.input; }
+  }
+  function doSlip(){
+    const c=S.tonight.slice();
+    let k=5; while (k>0 && c[k]===0) k--;
+    c[k]=Number(String(c[k])+"0");
+    S.input=c.join("*"); $("inp").textContent=S.input;
+    $("explain").innerHTML="An extra 0 was typed for product "+(k+1)+" ("+S.tonight[k]+" became "+c[k]+"). Press Send to see the phone catch it.";
+  }
+
+  // ---------- phone logic ----------
+  function sendKey(){
+    const v=S.input;
+    switch(S.screen){
+      case "s1":
+        if (v===PIN) go("s2"); else { S.tries++; go(S.tries>=3?"s1b":"s1"); } break;
+      case "s1b": go("end"); break;
+      case "s2":
+        if (v==="0"){ go("s7"); break; }
+        { const raw=v.split("*"), parts=raw.filter(p=>p!=="");
+          if (parts.length!==6 || raw.some(p=>p==="") || parts.some(p=>!/^\d+$/.test(p))){ S.nvals=parts.length; go("s2a"); }
+          else { S.counts=parts.map(Number); S.ok=new Set(); go("s3"); } }
+        break;
+      case "s2a": go(v==="1"?"s2":"s2a"); break;
+      case "s3": {
+        const f=query(S.counts);
+        if (v==="1"){
+          if (f>=0){ S.ok.add(f); if (query(S.counts)>=0){ go("s3"); break; } }
+          commit(S.counts); renderCard();
+          go(E.advice.length ? "s4" : "s4n");
+        } else if (v==="2"){ if (f>=0){ S.flag=f; go("s3r"); } else go("s2"); }
+        else go("s3");
+        break; }
+      case "s3r":
+        if (/^\d+$/.test(v)){ S.counts[S.flag]=Number(v); S.ok.add(S.flag); go("s3"); } else go("s3r"); break;
+      case "s4": if (v==="0"){ S.sawWhy=true; go("s5"); } else go("s6"); break;
+      case "s4n": S.path="none"; go("s8"); break;
+      case "s5": if (v==="1"||v==="") go("s4"); else go("s5"); break;
+      case "s6": if (["1","2","3"].includes(v)){ confirm(v); S.path="buy"; go("s8"); } else go("s6"); break;
+      case "s7": {
+        const m=v.match(/^([1-6])\*(\d{1,3})$/);
+        if (m){ const p=P[+m[1]-1]; p.deliv=Math.max(0,p.deliv-Number(m[2])); S.path="short"; go("s8"); }
+        else go("s7");
+        break; }
+      case "s8":
+        if (S.path==="buy" && E.advice.length){
+          $("smstext").textContent = DAYS[E.day]+" BUY "+E.advice.map(a=>(a.i+1)+" "+SHORT[a.i]+" "+a.q).join(", ")+". Ref "+E.ref+".";
+          $("sms").style.display="block";
+        }
+        if (S.path==="buy"||S.path==="none"){ E.day++; if (E.day<7) newEvening(); }
+        renderCard(); go("end"); break;
+      default: break;
+    }
+  }
+  function press(k){ if (S.screen==="idle"||S.screen==="end") return; if (S.input.length<40){ S.input+=k; $("inp").textContent=S.input; } }
+  function clr(){ S.input=S.input.slice(0,-1); $("inp").textContent=S.input; }
+  function dial(){ S.tries=0; S.ok=new Set(); S.path=""; S.sawWhy=false; $("sms").style.display="none"; go("s1"); }
+
+  // ---------- card ----------
+  function editable(){ return side==="front" && E.day<7 && !E.sent[E.day]; }
+  function renderCard(){
+    const head='<tr><th>Day</th>'+NAMES.map((n,i)=>'<th>'+ICON[i]+(i+1)+'<br>'+n+'</th>').join('')+(side==="front"?'<th>Sent ✓</th>':'')+'</tr>';
+    const rows=DAYS.map((d,k)=>{
+      const tonight = side==="front" && k===E.day && E.day<7 && !E.sent[k];
+      let cells;
+      if (tonight && editable()){
+        cells = S.tonight.map((v,i)=>'<td><input type="number" inputmode="numeric" min="0" max="999" data-i="'+i+'" value="'+v+'" aria-label="'+NAMES[i]+' count tonight"></td>').join('');
+      } else {
+        const vals = side==="front" ? (E.sent[k] || (tonight ? S.tonight : null)) : E.levels[k];
+        cells = vals ? vals.map(v=>'<td>'+v+'</td>').join('') : '<td></td>'.repeat(6);
+      }
+      const cls = tonight ? "today" : (side==="front" && E.sent[k] ? "sentnow" : "");
+      const tick = side==="front" ? '<td>'+(E.sent[k]?"✓":(tonight?"not yet":""))+'</td>' : '';
+      return '<tr class="'+cls+'"><td class="day">'+d+'</td>'+cells+tick+'</tr>';
+    }).join('');
+    $("card").innerHTML=head+rows;
+    $("chipbox").style.display = editable() ? "block" : "none";
+    document.querySelectorAll(".chips button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.ex===S.kind));
+    $("chipnote").textContent = S.kind ? EXNOTE[S.kind] : "Your own numbers.";
+    if (side==="front"){
+      $("cardtitle").textContent="Count card: written by the owner at closing";
+      $("legend").innerHTML=(editable()?'<span><span class="sw" style="background:#fff3d6"></span>Yellow: tonight, counted but not sent yet. Tap a box to change a number.</span>':'')+'<span><span class="sw" style="background:#e3f1e6"></span>Green ✓: sent</span>';
+      $("cardnote").textContent="One card a week, kept at the shelf. Each column is one product, shown by a picture, so no reading is needed.";
+    } else {
+      $("cardtitle").textContent="Back of the card: order when below";
+      $("legend").innerHTML="";
+      $("cardnote").textContent="After each evening the owner writes, for each product, the number to order at. On a night with no signal, the owner checks the shelf against the last row.";
+    }
+  }
+  function renderEngine(){
+    const h='<tr><th>Product</th><th>d (units/day)</th><th>SD √v</th><th>L, σL (days)</th><th>R (days)</th><th>d_eff</th><th>s</th><th>Last count</th><th>Order Q</th></tr>';
+    const r=P.map((p,i)=>{
+      const s=level(p), due = p.last!==null && p.last<=s;
+      return '<tr><td>'+NAMES[i]+'</td><td>'+p.d.toFixed(3)+'</td><td>'+Math.sqrt(p.v).toFixed(2)+'</td><td>'+p.L+', '+p.sL+'</td><td>'+p.R+
+        '</td><td>'+deff(p).toFixed(3)+'</td><td>'+s.toFixed(3)+'</td><td'+(due?' class="due"':'')+'>'+(p.last===null?'–':p.last)+
+        '</td><td>'+qty(p)+'</td></tr>';
+    }).join('');
+    $("eng").innerHTML=h+r;
+    $("lastx").textContent = E.lastX ? "Units that left stock at the last count (x): "+E.lastX.map((x,i)=>(i+1)+": "+(x===null?"– (first count)":x)).join(", ") : "No counts yet: starting values shown.";
+  }
+
+  // ---------- wiring ----------
+  const K=["1","2","3","4","5","6","7","8","9","*","0","#"];
+  $("keys").innerHTML=K.map(k=>'<button data-k="'+k+'" aria-label="Key '+k+'">'+k+'</button>').join("");
+  $("keys").addEventListener("click",e=>{const b=e.target.closest("button"); if(b) press(b.dataset.k);});
+  $("snd").addEventListener("click",sendKey); $("clr").addEventListener("click",clr); $("dial").addEventListener("click",dial);
+  $("ex").addEventListener("click",doExample); $("slip").addEventListener("click",doSlip);
+  $("peak").addEventListener("change",()=>render());
+  $("reset").addEventListener("click",()=>start());
+  document.querySelectorAll(".chips button").forEach(b=>b.addEventListener("click",()=>{
+    S.kind=b.dataset.ex; S.tonight=exampleRow(S.kind); renderCard();
+  }));
+  $("card").addEventListener("input",e=>{
+    const t=e.target; if (t.tagName!=="INPUT") return;
+    const n=Math.max(0, Math.min(999, parseInt(t.value,10)||0));
+    S.tonight[+t.dataset.i]=n; S.kind=null;
+    document.querySelectorAll(".chips button").forEach(b=>b.setAttribute("aria-pressed","false"));
+    $("chipnote").textContent="Your own numbers.";
+  });
+  document.querySelectorAll(".flip button").forEach(b=>b.addEventListener("click",()=>{
+    side=b.dataset.side; document.querySelectorAll(".flip button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderCard();
+  }));
+  document.addEventListener("keydown",e=>{
+    if (e.target.tagName==="INPUT") return;
+    if (e.target.tagName==="BUTTON" && (e.key==="Enter"||e.key===" ")) return;
+    if (/^[0-9*#]$/.test(e.key)){ press(e.key); e.preventDefault(); }
+    else if (e.key==="Enter"){ sendKey(); e.preventDefault(); }
+    else if (e.key==="Backspace"){ clr(); e.preventDefault(); }
+  });
+  function start(){
+    newShop(); S={screen:"idle",input:"",tries:0,counts:[],ok:new Set(),flag:-1,nvals:0,path:"",tonight:[],kind:"normal"};
+    newEvening();
+    $("peak").checked=false; $("sms").style.display="none"; renderCard(); render();
+  }
+  window.__engine = {P:()=>P, E:()=>E, level, qty, deff};
+  start();
+})();
+</script>
+</body>
+</html>
